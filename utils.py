@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from keras.layers import Lambda, Convolution2D, Flatten, Dense,Cropping2D
+from keras.layers import Lambda, Convolution2D, Flatten, Dense,Cropping2D, Dropout
 from keras.models import Sequential
 from keras.optimizers import Adam
 from sklearn.utils import shuffle
@@ -20,8 +20,8 @@ def sample(df, limit, nb_small):
     return shuffle(pd.concat([big, small.iloc[small_choice]]))
 
 
-def flip_image(image, steering):
-    if np.random.randint(2) > 0:
+def flip_image(image, steering, random = True):
+    if random and np.random.randint(2) > 0:
         return image, steering
     return np.fliplr(image), steering * -1.0
 
@@ -44,6 +44,7 @@ def nvidia_model(input_shape):
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Flatten())
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
@@ -56,7 +57,7 @@ def nvidia_model(input_shape):
     return model
 
 
-def data_generator(df, batch_size, augment=True):
+def random_data_generator(df, batch_size, augment=True):
     cameras = ['left', 'center', 'right']
     corrections = [0.25, 0, -0.25]
     while True:
@@ -74,3 +75,28 @@ def data_generator(df, batch_size, augment=True):
             batch_steerings.append(steering)
 
         yield np.array(batch_images), np.array(batch_steerings)
+
+
+def data_generator(df, batch_size, augment=True):
+    cameras = ['left', 'center', 'right']
+    corrections = [0.25, 0, -0.25]
+    while True:
+        shuffle(df)
+        for offset in range(0, len(df), batch_size):
+            batch = df.iloc[offset: offset + batch_size]
+            batch_images = []
+            batch_steerings = []
+            for _, row in batch.iterrows():
+                for camera, correction in zip(cameras, corrections):
+                    image_name = row[camera]
+                    steering = row['steering'] + correction
+                    image = read_image(image_name)
+                    batch_images.append(image)
+                    batch_steerings.append(steering)
+                    if augment:
+                        flipped_image, flipped_steering = flip_image(image, steering, random=False)
+                        batch_images.append(flipped_image)
+                        batch_steerings.append(flipped_steering)
+
+            yield np.array(batch_images), np.array(batch_steerings)
+
