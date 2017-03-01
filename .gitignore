@@ -1,1 +1,5 @@
 .idea/
+.ipynb_checkpoints
+beta_simulator_mac.app/
+data
+__pycache__/

@@ -1,7 +1,13 @@
-import pandas as pd
-import numpy as np
-from sklearn.utils import shuffle
 import cv2
+import numpy as np
+import pandas as pd
+import tensorflow as tf
+from keras.layers import Lambda, Convolution2D, Flatten, Dense,Cropping2D
+from keras.models import Sequential
+from keras.optimizers import Adam
+from sklearn.utils import shuffle
+
+tf.python.control_flow_ops = tf
 
 data_path = 'data/'
 
@@ -14,17 +20,57 @@ def sample(df, limit, nb_small):
     return shuffle(pd.concat([big, small.iloc[small_choice]]))
 
 
-def read_images(line):
-    left = cv2.imread(data_path + line['left'].strip())
-    center = cv2.imread(data_path + line['center'].strip())
-    right = cv2.imread(data_path + line['right'].strip())
-
-    return left, center, right
+def flip_image(image, steering):
+    if np.random.randint(2) > 0:
+        return image, steering
+    return np.fliplr(image), steering * -1.0
 
 
-def flip_image(image):
-    return cv2.flip(image, 1)
+def read_image(name):
+    return cv2.imread(data_path + name.strip())
 
 
-def convert_gray(image):
-    return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+def preprocess_image(image):
+    image = image[51:141, :, :]
+    return cv2.resize(image, (200, 66))
+
+
+def nvidia_model(input_shape):
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
+    model.add(Cropping2D(((50,20),(0,0))))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
+    model.add(Flatten())
+    model.add(Dense(100, activation='relu'))
+    model.add(Dense(50, activation='relu'))
+    model.add(Dense(10, activation='relu'))
+    model.add(Dense(1))
+
+    print(model.summary())
+
+    model.compile(loss='mse', optimizer=Adam())
+    return model
+
+
+def data_generator(df, batch_size, augment=True):
+    cameras = ['left', 'center', 'right']
+    corrections = [0.25, 0, -0.25]
+    while True:
+        batch = df.sample(batch_size)
+        batch_images = []
+        batch_steerings = []
+        for _, row in batch.iterrows():
+            cam_index = np.random.randint(3)
+            image_name = row[cameras[cam_index]]
+            steering = row['steering'] + corrections[cam_index]
+            image = read_image(image_name)
+            if augment:
+                image, steering = flip_image(image, steering)
+            batch_images.append(image)
+            batch_steerings.append(steering)
+
+        yield np.array(batch_images), np.array(batch_steerings)
