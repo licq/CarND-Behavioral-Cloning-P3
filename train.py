@@ -4,7 +4,7 @@ from sklearn.model_selection import train_test_split
 import utils
 
 DRIVING_LOG_CSV = 'data/driving_log.csv'
-EPOCHS = 5
+EPOCHS = 10
 BATCH_SIZE = 64
 
 
