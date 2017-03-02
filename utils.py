@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from keras.layers import Lambda, Convolution2D, Flatten, Dense,Cropping2D, Dropout
+from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout
 from keras.models import Sequential
 from keras.optimizers import Adam
 from sklearn.utils import shuffle
@@ -20,7 +20,7 @@ def sample(df, limit, nb_small):
     return shuffle(pd.concat([big, small.iloc[small_choice]]))
 
 
-def flip_image(image, steering, random = True):
+def flip_image(image, steering, random=True):
     if random and np.random.randint(2) > 0:
         return image, steering
     return np.fliplr(image), steering * -1.0
@@ -35,10 +35,11 @@ def preprocess_image(image):
     return cv2.resize(image, (200, 66))
 
 
-def nvidia_model(input_shape):
+def nvidia_model(input_shape, with_cropping=True):
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
-    model.add(Cropping2D(((50,20),(0,0))))
+    if with_cropping:
+        model.add(Cropping2D(((50, 20), (0, 0))))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
@@ -68,7 +69,7 @@ def random_data_generator(df, batch_size, augment=True):
             cam_index = np.random.randint(3)
             image_name = row[cameras[cam_index]]
             steering = row['steering'] + corrections[cam_index]
-            image = read_image(image_name)
+            image = preprocess_image(read_image(image_name))
             if augment:
                 image, steering = flip_image(image, steering)
             batch_images.append(image)
@@ -99,4 +100,3 @@ def data_generator(df, batch_size, augment=True):
                         batch_steerings.append(flipped_steering)
 
             yield np.array(batch_images), np.array(batch_steerings)
-
