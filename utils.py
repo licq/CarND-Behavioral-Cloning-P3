@@ -31,8 +31,9 @@ def read_image(name):
 
 
 def preprocess_image(image):
-    image = image[51:141, :, :]
-    return cv2.resize(image, (200, 66))
+    # image = image[51:141, :, :]
+    # return cv2.resize(image, (200, 66))
+    return image
 
 
 def nvidia_model(input_shape, with_cropping=True):
@@ -91,7 +92,7 @@ def data_generator(df, batch_size, augment=True):
                 for camera, correction in zip(cameras, corrections):
                     image_name = row[camera]
                     steering = row['steering'] + correction
-                    image = read_image(image_name)
+                    image = preprocess_image(read_image(image_name))
                     batch_images.append(image)
                     batch_steerings.append(steering)
                     if augment:

@@ -3,3 +3,4 @@
 beta_simulator_mac.app/
 data
 __pycache__/
+model.h5
