@@ -1,3 +1,5 @@
+import os
+
 import cv2
 import numpy as np
 import pandas as pd
@@ -9,7 +11,23 @@ from sklearn.utils import shuffle
 
 tf.python.control_flow_ops = tf
 
-data_path = 'data/'
+
+def image_path(path, full):
+    last = full.split('/')[-1].strip()
+    return os.path.join(path, 'IMG', last)
+
+
+def read_driving_log(path, has_header=True):
+    if has_header:
+        df = pd.read_csv(os.path.join(path, 'driving_log.csv'))
+    else:
+        df = pd.read_csv(os.path.join(path, 'driving_log.csv'), header=None,
+                         names=['center', 'left', 'right', 'steering', 'throttle', 'brake', 'speed'])
+    df['left'] = df.apply(lambda row: image_path(path, row['left']), axis=1)
+    df['center'] = df.apply(lambda row: image_path(path, row['center']), axis=1)
+    df['right'] = df.apply(lambda row: image_path(path, row['right']), axis=1)
+
+    return df
 
 
 def sample(df, limit, nb_small):
@@ -24,16 +42,6 @@ def flip_image(image, steering, random=True):
     if random and np.random.randint(2) > 0:
         return image, steering
     return np.fliplr(image), steering * -1.0
-
-
-def read_image(name):
-    return cv2.imread(data_path + name.strip())
-
-
-def preprocess_image(image):
-    # image = image[51:141, :, :]
-    # return cv2.resize(image, (200, 66))
-    return image
 
 
 def nvidia_model(input_shape, with_cropping=True):
@@ -70,7 +78,7 @@ def random_data_generator(df, batch_size, augment=True):
             cam_index = np.random.randint(3)
             image_name = row[cameras[cam_index]]
             steering = row['steering'] + corrections[cam_index]
-            image = preprocess_image(read_image(image_name))
+            image = cv2.imread(image_name)
             if augment:
                 image, steering = flip_image(image, steering)
             batch_images.append(image)
@@ -92,7 +100,7 @@ def data_generator(df, batch_size, augment=True):
                 for camera, correction in zip(cameras, corrections):
                     image_name = row[camera]
                     steering = row['steering'] + correction
-                    image = preprocess_image(read_image(image_name))
+                    image = cv2.imread(image_name)
                     batch_images.append(image)
                     batch_steerings.append(steering)
                     if augment:
