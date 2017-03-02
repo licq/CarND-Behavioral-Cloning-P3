@@ -9,8 +9,9 @@ BATCH_SIZE = 64
 
 def main():
     track1 = utils.read_driving_log('data')
-    track2 = utils.read_driving_log('track2', has_header=False)
-    driving_log = pd.concat([track1, track2])
+    driving_log = track1
+    # track2 = utils.read_driving_log('track2', has_header=False)
+    # driving_log = pd.concat([track1, track2])
     # driving_log = utils.sample(driving_log, 0.1, 1000)
 
     model = utils.nvidia_model((160, 320, 3), with_cropping=True)

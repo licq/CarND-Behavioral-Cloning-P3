@@ -53,6 +53,7 @@ def nvidia_model(input_shape, with_cropping=True):
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
+    model.add(Dropout(0.5))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Dropout(0.5))
     model.add(Flatten())
