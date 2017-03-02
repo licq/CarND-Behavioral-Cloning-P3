@@ -18,16 +18,16 @@ def main():
 
     train, validation = train_test_split(driving_log, test_size=0.2)
 
-    model.fit_generator(utils.random_data_generator(train, BATCH_SIZE, augment=True),
-                        samples_per_epoch=BATCH_SIZE * 400,
-                        nb_epoch=EPOCHS,
-                        validation_data=utils.random_data_generator(validation, BATCH_SIZE, augment=False),
-                        nb_val_samples=BATCH_SIZE * 10)
-    # model.fit_generator(utils.data_generator(train, BATCH_SIZE, augment=True),
-    #                     samples_per_epoch=len(train) * 6,
+    # model.fit_generator(utils.random_data_generator(train, BATCH_SIZE, augment=True),
+    #                     samples_per_epoch=BATCH_SIZE * 400,
     #                     nb_epoch=EPOCHS,
-    #                     validation_data=utils.data_generator(validation, BATCH_SIZE, augment=False),
-    #                     nb_val_samples=len(validation) * 3)
+    #                     validation_data=utils.random_data_generator(validation, BATCH_SIZE, augment=False),
+    #                     nb_val_samples=BATCH_SIZE * 10)
+    model.fit_generator(utils.data_generator(train, BATCH_SIZE, augment=True),
+                        samples_per_epoch=len(train) * 6,
+                        nb_epoch=EPOCHS,
+                        validation_data=utils.data_generator(validation, BATCH_SIZE, augment=False),
+                        nb_val_samples=len(validation) * 3)
 
     model.save('model.h5')
 
