@@ -4,13 +4,13 @@ from sklearn.model_selection import train_test_split
 import utils
 
 DRIVING_LOG_CSV = 'data/driving_log.csv'
-EPOCHS = 10
+EPOCHS = 5
 BATCH_SIZE = 64
 
 
 def main():
     driving_log = pd.read_csv(DRIVING_LOG_CSV)
-    # driving_log = utils.sample(driving_log, 0.1, 1000)
+    driving_log = utils.sample(driving_log, 0.1, 1000)
 
     model = utils.nvidia_model((160, 320, 3), with_cropping=True)
 
