@@ -12,7 +12,7 @@ import socketio
 from PIL import Image
 from flask import Flask
 from keras import __version__ as keras_version
-from keras.models import load_model
+from keras.models import load_model, model_from_json
 
 sio = socketio.Server()
 app = Flask(__name__)
@@ -108,16 +108,12 @@ if __name__ == '__main__':
     )
     args = parser.parse_args()
 
-    # check that model Keras version is same as local Keras version
-    f = h5py.File(args.model, mode='r')
-    model_version = f.attrs.get('keras_version')
-    keras_version = str(keras_version).encode('utf8')
+    with open(args.model, 'r') as f:
+        model = model_from_json(f.read())
 
-    if model_version != keras_version:
-        print('You are using Keras version ', keras_version,
-              ', but the model was built using ', model_version)
-
-    model = load_model(args.model)
+    model.compile('adam', 'mse')
+    weights_file = args.model.replace('json', 'h5')
+    model.load_weights(weights_file)
 
     if args.image_folder != '':
         print("Creating image folder at {}".format(args.image_folder))
