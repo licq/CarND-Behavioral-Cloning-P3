@@ -4,12 +4,14 @@ import cv2
 import numpy as np
 import pandas as pd
 import tensorflow as tf
-from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout
+from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout, ELU, BatchNormalization
 from keras.models import Sequential
-from keras.optimizers import Adam
+from keras.optimizers import Adam, RMSprop
 from sklearn.utils import shuffle
 
 tf.python.control_flow_ops = tf
+
+input_shape = (160, 320, 3)
 
 
 def image_path(path, full):
@@ -44,26 +46,87 @@ def flip_image(image, steering, random=True):
     return np.fliplr(image), steering * -1.0
 
 
-def nvidia_model(input_shape, with_cropping=True):
+def nvidia_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
-    if with_cropping:
-        model.add(Cropping2D(((50, 20), (0, 0))))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
-    model.add(Dropout(0.5))
+    model.add(Cropping2D(((50, 20), (0, 0))))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init='he_normal'))
+    model.add(ELU())
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init='he_normal'))
+    model.add(ELU())
     model.add(Flatten())
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(10, activation='relu'))
-    model.add(Dense(1))
+    model.add(Dense(1164, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(100, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(50, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(10, init='he_normal'))
+    model.add(ELU())
+    model.add(Dense(1, init='he_normal'))
 
     print(model.summary())
 
     model.compile(loss='mse', optimizer=Adam())
+    return model
+
+
+def new_model():
+    weight_init = 'he_normal'
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
+    model.add(Cropping2D(((50, 20), (0, 0))))
+    model.add(BatchNormalization(mode=2, axis=1))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), init=weight_init))
+    model.add(ELU())
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), init=weight_init))
+    model.add(ELU())
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), init=weight_init))
+    model.add(ELU())
+    model.add(Convolution2D(64, 3, 3, init=weight_init))
+    model.add(ELU())
+    model.add(Convolution2D(64, 3, 3, init=weight_init))
+    model.add(ELU())
+    model.add(Flatten())
+    model.add(Dense(100, init=weight_init))
+    model.add(ELU())
+    model.add(Dense(50, init=weight_init))
+    model.add(ELU())
+    model.add(Dense(10, init=weight_init))
+    model.add(ELU())
+    model.add(Dropout(0.25))
+    model.add(Dense(1, init=weight_init))
+
+    print(model.summary())
+
+    model.compile(optimizer=RMSprop(0.0001), loss='mse')
+    return model
+
+
+def small_model():
+    weight_init = 'glorot_normal'
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
+    model.add(Cropping2D(((50, 20,), (0, 0))))
+    model.add(BatchNormalization(mode=2, axis=1))
+    model.add(Convolution2D(3, 3, 3, subsample=(2, 2), init=weight_init, activation='relu'))
+    model.add(Convolution2D(9, 3, 3, subsample=(2, 2), init=weight_init, activation='relu'))
+    model.add(Convolution2D(18, 3, 3, subsample=(2, 2), init=weight_init, activation='relu'))
+    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), init=weight_init, activation='relu'))
+    model.add(Flatten())
+    model.add(Dense(80, activation='relu', init=weight_init))
+    model.add(Dense(15, activation='relu', init=weight_init))
+    model.add(Dropout(0.25))
+    model.add(Dense(1, activation='linear', init=weight_init))
+
+    print(model.summary())
+    model.compile(optimizer=RMSprop(0.00001), loss='mse')
     return model
 
 
