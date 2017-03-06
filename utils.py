@@ -47,28 +47,34 @@ def flip_image(image, steering, random=True):
 
 
 def nvidia_model():
+    weight_init = 'he_normal'
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
     model.add(Cropping2D(((50, 20), (0, 0))))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), init='he_normal'))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), init=weight_init))
+    model.add(BatchNormalization())
     model.add(ELU())
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), init='he_normal'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), init=weight_init))
+    model.add(BatchNormalization())
     model.add(ELU())
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), init='he_normal'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), init=weight_init))
+    model.add(BatchNormalization())
     model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init='he_normal'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init=weight_init))
+    model.add(BatchNormalization())
     model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init='he_normal'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init=weight_init))
+    model.add(BatchNormalization())
     model.add(ELU())
     model.add(Flatten())
     model.add(Dropout(0.5))
-    model.add(Dense(100, init='he_normal'))
+    model.add(Dense(100, init=weight_init))
     model.add(ELU())
-    model.add(Dense(50, init='he_normal'))
+    model.add(Dense(50, init=weight_init))
     model.add(ELU())
-    model.add(Dense(10, init='he_normal'))
+    model.add(Dense(10, init=weight_init))
     model.add(ELU())
-    model.add(Dense(1, init='he_normal'))
+    model.add(Dense(1, init=weight_init))
 
     print(model.summary())
 
@@ -104,38 +110,6 @@ def openai_model():
     print(model.summary())
     model.compile(loss='mse', optimizer='adam')
 
-    return model
-
-
-def new_model():
-    weight_init = 'he_normal'
-    model = Sequential()
-    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
-    model.add(Cropping2D(((50, 20), (0, 0))))
-    model.add(BatchNormalization(mode=2, axis=1))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), init=weight_init))
-    model.add(ELU())
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), init=weight_init))
-    model.add(ELU())
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), init=weight_init))
-    model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, init=weight_init))
-    model.add(ELU())
-    model.add(Convolution2D(64, 3, 3, init=weight_init))
-    model.add(ELU())
-    model.add(Flatten())
-    model.add(Dropout(0.5))
-    model.add(Dense(100, init=weight_init))
-    model.add(ELU())
-    model.add(Dense(50, init=weight_init))
-    model.add(ELU())
-    model.add(Dense(10, init=weight_init))
-    model.add(ELU())
-    model.add(Dense(1, init=weight_init))
-
-    print(model.summary())
-
-    model.compile(optimizer=RMSprop(0.0001), loss='mse')
     return model
 
 
