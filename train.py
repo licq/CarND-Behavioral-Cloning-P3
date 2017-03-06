@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 import utils
 
 MODEL_FILE = 'model.h5'
-EPOCHS = 5
+EPOCHS = 10
 BATCH_SIZE = 64
 
 
