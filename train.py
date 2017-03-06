@@ -202,7 +202,7 @@ def train(sources, model_name, epochs=EPOCHS):
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    data.append('test2')
-    data.append('test2_r')
+    # data.append('test2')
+    # data.append('test2_r')
 
-    train(data, 'nvidia_model', 5)
+    train(data, 'nvidia_model')
