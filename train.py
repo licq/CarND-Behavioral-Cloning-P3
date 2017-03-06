@@ -71,7 +71,7 @@ def lenet_model():
     model.add(Flatten())
     model.add(Dense(120, activation='relu'))
     model.add(Dense(84, activation='relu'))
-    model.add(Dense(1, activation='relu'))
+    model.add(Dense(1))
 
     return model
 
@@ -90,7 +90,7 @@ def nvidia_model():
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
-    model.add(Dense(1, activation='relu'))
+    model.add(Dense(1))
 
     return model
 
@@ -205,4 +205,4 @@ if __name__ == '__main__':
     data.append('test2')
     data.append('test2_r')
 
-    train(data, 'nvidia_model')
+    train(data, 'nvidia_model', 5)
