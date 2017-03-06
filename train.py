@@ -30,7 +30,7 @@ def main():
     # test2 = utils.read_driving_log('test2', has_header=False)
     # test2_r = utils.read_driving_log('test2_r', has_header=False)
     # driving_log = pd.concat([track1, test2])
-    model = get_model(utils.openai_model)
+    model = get_model(utils.nvidia_model)
     driving_log = track1
 
     train, validation = train_test_split(driving_log, test_size=0.2)

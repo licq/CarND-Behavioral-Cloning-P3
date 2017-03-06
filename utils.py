@@ -6,7 +6,7 @@ import pandas as pd
 import tensorflow as tf
 from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout, ELU, BatchNormalization
 from keras.models import Sequential
-from keras.optimizers import Adam, RMSprop
+from keras.optimizers import RMSprop
 from sklearn.utils import shuffle
 
 tf.python.control_flow_ops = tf
@@ -61,8 +61,7 @@ def nvidia_model():
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), init='he_normal'))
     model.add(ELU())
     model.add(Flatten())
-    model.add(Dense(1164, init='he_normal'))
-    model.add(ELU())
+    model.add(Dropout(0.5))
     model.add(Dense(100, init='he_normal'))
     model.add(ELU())
     model.add(Dense(50, init='he_normal'))
@@ -73,7 +72,7 @@ def nvidia_model():
 
     print(model.summary())
 
-    model.compile(loss='mse', optimizer=Adam())
+    model.compile(loss='mse', optimizer="adam")
     return model
 
 
