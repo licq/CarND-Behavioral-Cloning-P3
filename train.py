@@ -148,8 +148,8 @@ def data_generator(df, batch_size, augment=True):
             for _, row in batch.iterrows():
                 for camera, correction in zip(cameras, corrections):
                     image_name = row[camera]
-                    print('steering', row['steering'])
-                    steering = row['steering'] + correction
+                    # print('steering', row['steering'])
+                    steering = float(row['steering']) + correction
                     image = cv2.imread(image_name)
                     batch_images.append(image)
                     batch_steerings.append(steering)
