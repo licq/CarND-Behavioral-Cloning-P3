@@ -77,6 +77,37 @@ def nvidia_model():
     return model
 
 
+def openai_model():
+    weight_init = 'he_normal'
+    model = Sequential()
+    model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=input_shape))
+    model.add(Cropping2D(((50, 20), (0, 0))))
+    model.add(Convolution2D(3, 1, 1, subsample=(1, 1), border_mode='same', init=weight_init))
+    model.add(BatchNormalization())
+    model.add(ELU())
+    model.add(Convolution2D(16, 5, 5, subsample=(4, 4), border_mode='same', init=weight_init))
+    model.add(BatchNormalization())
+    model.add(ELU())
+    model.add(Convolution2D(32, 3, 3, subsample=(2, 2), border_mode='same', init=weight_init))
+    model.add(BatchNormalization())
+    model.add(ELU())
+    model.add(Convolution2D(64, 3, 3, subsample=(2, 2), border_mode='same', init=weight_init))
+    model.add(BatchNormalization())
+    model.add(ELU())
+    model.add(Flatten())
+    model.add(Dropout(0.2))
+    model.add(Dense(512, init=weight_init))
+    model.add(BatchNormalization())
+    model.add(ELU())
+    model.add(Dropout(0.5))
+    model.add(Dense(1))
+
+    print(model.summary())
+    model.compile(loss='mse', optimizer='adam')
+
+    return model
+
+
 def new_model():
     weight_init = 'he_normal'
     model = Sequential()
@@ -94,13 +125,13 @@ def new_model():
     model.add(Convolution2D(64, 3, 3, init=weight_init))
     model.add(ELU())
     model.add(Flatten())
+    model.add(Dropout(0.5))
     model.add(Dense(100, init=weight_init))
     model.add(ELU())
     model.add(Dense(50, init=weight_init))
     model.add(ELU())
     model.add(Dense(10, init=weight_init))
     model.add(ELU())
-    model.add(Dropout(0.25))
     model.add(Dense(1, init=weight_init))
 
     print(model.summary())
