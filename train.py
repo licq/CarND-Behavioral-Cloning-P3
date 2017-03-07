@@ -17,6 +17,7 @@ MODEL_FILE = 'model.h5'
 EPOCHS = 10
 BATCH_SIZE = 64
 INPUT_SHAPE = (160, 320, 3)
+CORRECTION = 0.25
 
 
 def image_path(path, full):
@@ -80,6 +81,7 @@ def nvidia_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (0, 0))))
+    model.add(Convolution2D(3, 1, 1, subsample=(1, 1), activation='relu'))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
@@ -90,7 +92,6 @@ def nvidia_model():
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
-    model.add(Dropout(0.25))
     model.add(Dense(1))
 
     return model
@@ -121,7 +122,7 @@ def comma_model():
 
 def random_data_generator(df, batch_size, augment=True):
     cameras = ['left', 'center', 'right']
-    corrections = [0.25, 0, -0.25]
+    corrections = [CORRECTION, 0, CORRECTION * -1]
     while True:
         batch = df.sample(batch_size)
         batch_images = []
@@ -143,7 +144,7 @@ def random_data_generator(df, batch_size, augment=True):
 
 def data_generator(df, batch_size, augment=True):
     cameras = ['left', 'center', 'right']
-    corrections = [0.25, 0, -0.25]
+    corrections = [CORRECTION, 0, CORRECTION * -1]
     while True:
         shuffle(df)
         for offset in range(0, len(df), batch_size):
@@ -216,4 +217,4 @@ if __name__ == '__main__':
     data.append('test2')
     # data.append('test2_r')
 
-    train(data, 'nvidia_model')
+    train(data, 'nvidia_model', 30)
