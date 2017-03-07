@@ -90,6 +90,7 @@ def nvidia_model():
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
+    model.add(Dropout(0.25))
     model.add(Dense(1))
 
     return model
@@ -100,6 +101,8 @@ def comma_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (0, 0))))
+    model.add(Convolution2D(3, 1, 1, border_mode='same', init=weight_init))
+    model.add(ELU())
     model.add(Convolution2D(16, 8, 8, subsample=(4, 4), border_mode='same', init=weight_init))
     model.add(ELU())
     model.add(Convolution2D(32, 5, 5, subsample=(2, 2), border_mode='same', init=weight_init))
@@ -124,7 +127,9 @@ def random_data_generator(df, batch_size, augment=True):
         batch_images = []
         batch_steerings = []
         for _, row in batch.iterrows():
-            cam_index = np.random.randint(3)
+            cam_index = np.random.randint(5)
+            if cam_index >= 3:
+                cam_index = 1
             image_name = row[cameras[cam_index]]
             steering = row['steering'] + corrections[cam_index]
             image = cv2.imread(image_name)
@@ -133,7 +138,7 @@ def random_data_generator(df, batch_size, augment=True):
             batch_images.append(image)
             batch_steerings.append(steering)
 
-        yield np.array(batch_images), np.array(batch_steerings)
+        yield shuffle(np.array(batch_images), np.array(batch_steerings))
 
 
 def data_generator(df, batch_size, augment=True):
@@ -182,11 +187,17 @@ def train(sources, model_name, epochs=EPOCHS):
     early_stopping = EarlyStopping(monitor='val_loss', patience=8, verbose=1, mode='auto')
     save_weights = ModelCheckpoint(model_name + '.h5', monitor='val_loss', save_best_only=True)
 
-    history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
-                                  samples_per_epoch=len(train_data) * 6,
+    # history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
+    #                               samples_per_epoch=len(train_data) * 6,
+    #                               nb_epoch=epochs,
+    #                               validation_data=data_generator(validation_data, BATCH_SIZE, augment=False),
+    #                               nb_val_samples=len(validation_data) * 3,
+    #                               callbacks=[save_weights, early_stopping])
+    history = model.fit_generator(random_data_generator(train_data, BATCH_SIZE, augment=True),
+                                  samples_per_epoch=BATCH_SIZE * 400,
                                   nb_epoch=epochs,
-                                  validation_data=data_generator(validation_data, BATCH_SIZE, augment=False),
-                                  nb_val_samples=len(validation_data) * 3,
+                                  validation_data=random_data_generator(validation_data, BATCH_SIZE, augment=False),
+                                  nb_val_samples=BATCH_SIZE * 50,
                                   callbacks=[save_weights, early_stopping])
 
     import matplotlib.pyplot as plt
@@ -205,4 +216,4 @@ if __name__ == '__main__':
     data.append('test2')
     # data.append('test2_r')
 
-    train(data, 'nvidia_model', 5)
+    train(data, 'nvidia_model')
