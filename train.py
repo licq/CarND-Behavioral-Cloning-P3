@@ -160,12 +160,12 @@ def data_generator(df, batch_size, augment=True):
             yield shuffle(np.array(batch_images), np.array(batch_steerings))
 
 
-def get_model(model_func):
+def get_model(model_name):
     try:
-        model = load_model(MODEL_FILE)
+        model = load_model(model_name + '.h5')
         print('Load from trained model')
     except:
-        model = model_func()
+        model = globals()[model_name]()
         model.compile(loss='mse', optimizer='adam')
         print('train new model')
 
@@ -175,12 +175,12 @@ def get_model(model_func):
 def train(sources, model_name, epochs=EPOCHS):
     driving_logs = pd.concat([read_driving_log(source) for source in sources])
 
-    model = get_model(globals()[model_name])
+    model = get_model(model_name)
     print(model.summary())
 
     train_data, validation_data = train_test_split(driving_logs, test_size=0.2)
     early_stopping = EarlyStopping(monitor='val_loss', patience=8, verbose=1, mode='auto')
-    save_weights = ModelCheckpoint(MODEL_FILE, monitor='val_loss', save_best_only=True)
+    save_weights = ModelCheckpoint(model_name + '.h5', monitor='val_loss', save_best_only=True)
 
     history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
                                   samples_per_epoch=len(train_data) * 6,
@@ -202,7 +202,7 @@ def train(sources, model_name, epochs=EPOCHS):
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    # data.append('test2')
+    data.append('test2')
     # data.append('test2_r')
 
-    train(data, 'nvidia_model')
+    train(data, 'nvidia_model', 5)
