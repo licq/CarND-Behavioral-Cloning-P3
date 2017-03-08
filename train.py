@@ -81,14 +81,13 @@ def nvidia_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (0, 0))))
-    model.add(Convolution2D(3, 1, 1, subsample=(1, 1), activation='relu'))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(24, 5, 5, subsample=(3, 3), activation='relu'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Flatten())
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.4))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
@@ -186,20 +185,20 @@ def train(sources, model_name, epochs=EPOCHS):
 
     train_data, validation_data = train_test_split(driving_logs, test_size=0.2)
     early_stopping = EarlyStopping(monitor='val_loss', patience=8, verbose=1, mode='auto')
-    save_weights = ModelCheckpoint(model_name + '.h5', monitor='val_loss', save_best_only=True)
+    save_weights = ModelCheckpoint(model_name + '.h5', monitor='val_loss', save_best_only=False)
 
-    # history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
-    #                               samples_per_epoch=len(train_data) * 6,
-    #                               nb_epoch=epochs,
-    #                               validation_data=data_generator(validation_data, BATCH_SIZE, augment=False),
-    #                               nb_val_samples=len(validation_data) * 3,
-    #                               callbacks=[save_weights, early_stopping])
-    history = model.fit_generator(random_data_generator(train_data, BATCH_SIZE, augment=True),
-                                  samples_per_epoch=BATCH_SIZE * 400,
+    history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
+                                  samples_per_epoch=len(train_data) * 6,
                                   nb_epoch=epochs,
-                                  validation_data=random_data_generator(validation_data, BATCH_SIZE, augment=False),
-                                  nb_val_samples=BATCH_SIZE * 50,
+                                  validation_data=data_generator(validation_data, BATCH_SIZE, augment=False),
+                                  nb_val_samples=len(validation_data) * 3,
                                   callbacks=[save_weights, early_stopping])
+    # history = model.fit_generator(random_data_generator(train_data, BATCH_SIZE, augment=True),
+    #                               samples_per_epoch=BATCH_SIZE * 400,
+    #                               nb_epoch=epochs,
+    #                               validation_data=random_data_generator(validation_data, BATCH_SIZE, augment=False),
+    #                               nb_val_samples=BATCH_SIZE * 50,
+    #                               callbacks=[save_weights, early_stopping])
 
     import matplotlib.pyplot as plt
     plt.plot(history.history['loss'])
@@ -215,6 +214,6 @@ if __name__ == '__main__':
     data = []
     data.append('track1')
     data.append('test2')
-    # data.append('test2_r')
+    data.append('test2_r')
 
-    train(data, 'nvidia_model', 30)
+    train(data, 'nvidia_model', 20)
