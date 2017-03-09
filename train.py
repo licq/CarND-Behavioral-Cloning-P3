@@ -84,13 +84,11 @@ def nvidia_model():
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Dropout(0.2))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Flatten())
     model.add(Dropout(0.4))
     model.add(Dense(100, activation='relu'))
-    model.add(Dropout(0.2))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
     model.add(Dense(1))
@@ -178,6 +176,16 @@ def get_model(model_name):
 
     return model
 
+def plot_history(history):
+    import matplotlib.pyplot as plt
+    plt.plot(history.history['loss'])
+    plt.plot(history.history['val_loss'])
+    plt.title('model mean squared error loss')
+    plt.ylabel('mean squared error loss')
+    plt.xlabel('epoch')
+    plt.legend(['training set', 'validation set'], loc='upper right')
+    plt.show()
+
 
 def train(sources, model_name, epochs=EPOCHS):
     driving_logs = pd.concat([read_driving_log(source) for source in sources])
@@ -202,22 +210,14 @@ def train(sources, model_name, epochs=EPOCHS):
     #                               nb_val_samples=BATCH_SIZE * 50,
     #                               callbacks=[save_weights, early_stopping])
 
-    import matplotlib.pyplot as plt
-    plt.plot(history.history['loss'])
-    plt.plot(history.history['val_loss'])
-    plt.title('model mean squared error loss')
-    plt.ylabel('mean squared error loss')
-    plt.xlabel('epoch')
-    plt.legend(['training set', 'validation set'], loc='upper right')
-    plt.show()
-
+    # plot_history(history)
 
 if __name__ == '__main__':
     data = []
     data.append('track1')
     data.append('test1')
-    data.append('test1_r')
+    # data.append('test1_r')
     data.append('test2')
-    data.append('test2_r')
+    # data.append('test2_r')
 
-    train(data, 'nvidia_model', 20)
+    train(data, 'nvidia_model', 10)
