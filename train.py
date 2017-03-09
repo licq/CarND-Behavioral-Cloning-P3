@@ -17,7 +17,7 @@ MODEL_FILE = 'model.h5'
 EPOCHS = 10
 BATCH_SIZE = 64
 INPUT_SHAPE = (160, 320, 3)
-CORRECTION = 0.25
+CORRECTION = 0.2
 
 
 def image_path(path, full):
@@ -87,7 +87,7 @@ def nvidia_model():
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Flatten())
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.5))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
@@ -215,7 +215,7 @@ def train(sources, model_name, epochs=EPOCHS):
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    data.append('test1')
+    # data.append('test1')
     # data.append('test1_r')
     data.append('test2')
     # data.append('test2_r')
