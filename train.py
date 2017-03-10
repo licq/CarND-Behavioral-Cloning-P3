@@ -82,7 +82,6 @@ def nvidia_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (0, 0))))
-    model.add(Convolution2D(3, 1, 1, subsample=(1, 1), activation='relu', init=weight_init))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu', init=weight_init))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu', init=weight_init))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu', init=weight_init))
@@ -219,7 +218,7 @@ def train(sources, model_name, epochs=EPOCHS):
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    data.append('test1')
+    # data.append('test1')
     data.append('test1_r')
     data.append('test2')
     data.append('test2_r')
