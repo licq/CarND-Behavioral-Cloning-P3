@@ -78,19 +78,21 @@ def lenet_model():
 
 
 def nvidia_model():
+    weight_init = 'he_normal'
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (0, 0))))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
+    model.add(Convolution2D(3, 1, 1, subsample=(1, 1), activation='relu', init=weight_init))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu', init=weight_init))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu', init=weight_init))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu', init=weight_init))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', init=weight_init))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu', init=weight_init))
     model.add(Flatten())
     model.add(Dropout(0.5))
-    model.add(Dense(100, activation='relu'))
-    model.add(Dense(50, activation='relu'))
-    model.add(Dense(10, activation='relu'))
+    model.add(Dense(100, activation='relu', init=weight_init))
+    model.add(Dense(50, activation='relu', init=weight_init))
+    model.add(Dense(10, activation='relu', init=weight_init))
     model.add(Dense(1))
 
     return model
@@ -176,6 +178,7 @@ def get_model(model_name):
 
     return model
 
+
 def plot_history(history):
     import matplotlib.pyplot as plt
     plt.plot(history.history['loss'])
@@ -210,14 +213,15 @@ def train(sources, model_name, epochs=EPOCHS):
     #                               nb_val_samples=BATCH_SIZE * 50,
     #                               callbacks=[save_weights, early_stopping])
 
-    # plot_history(history)
+    plot_history(history)
+
 
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    # data.append('test1')
-    # data.append('test1_r')
+    data.append('test1')
+    data.append('test1_r')
     data.append('test2')
-    # data.append('test2_r')
+    data.append('test2_r')
 
     train(data, 'nvidia_model', 10)
