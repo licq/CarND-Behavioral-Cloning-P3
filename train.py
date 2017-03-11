@@ -222,7 +222,7 @@ if __name__ == '__main__':
     data = []
     data.append('track1')
     # data.append('test1')
-    # data.append('test1_r')
+    data.append('test1_r')
     data.append('test2')
     data.append('test2_r')
 
