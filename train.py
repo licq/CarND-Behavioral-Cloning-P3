@@ -17,12 +17,17 @@ MODEL_FILE = 'model.h5'
 EPOCHS = 10
 BATCH_SIZE = 64
 INPUT_SHAPE = (160, 320, 3)
-CORRECTION = 0.25
+CORRECTION = 0.22
 
 
 def image_path(path, full):
     last = full.split('/')[-1].strip()
     return os.path.join(path, 'IMG', last)
+
+
+def preprocess_image(image):
+    image = image[51:140, :, :]
+    return cv2.resize(image, (200, 66))
 
 
 def read_driving_log(path, has_header=False):
@@ -82,16 +87,13 @@ def nvidia_model():
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (0, 0))))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Dropout(0.2))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Dropout(0.2))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
-    model.add(Dropout(0.2))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Dropout(0.2))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Flatten())
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.5))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
@@ -145,7 +147,7 @@ def random_data_generator(df, batch_size, augment=True):
         yield shuffle(np.array(batch_images), np.array(batch_steerings))
 
 
-def data_generator(df, batch_size, augment=True):
+def data_generator(df, batch_size, augment=True, preprocess=False):
     cameras = ['left', 'center', 'right']
     corrections = [CORRECTION, 0, CORRECTION * -1]
     while True:
@@ -159,6 +161,8 @@ def data_generator(df, batch_size, augment=True):
                     image_name = row[camera]
                     steering = row['steering'] + correction
                     image = cv2.imread(image_name)
+                    if preprocess:
+                        image = preprocess_image(image)
                     batch_images.append(image)
                     batch_steerings.append(steering)
                     if augment:
@@ -199,14 +203,14 @@ def train(sources, model_name, epochs=EPOCHS):
     print(model.summary())
 
     train_data, validation_data = train_test_split(driving_logs, test_size=0.2)
-    early_stopping = EarlyStopping(monitor='val_loss', patience=8, verbose=1, mode='auto')
+    early_stopping = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')
     save_weights = ModelCheckpoint(model_name + '.h5', monitor='val_loss', save_best_only=False)
 
     history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
                                   samples_per_epoch=len(train_data) * 6,
                                   nb_epoch=epochs,
-                                  validation_data=data_generator(validation_data, BATCH_SIZE, augment=False),
-                                  nb_val_samples=len(validation_data) * 3,
+                                  validation_data=data_generator(validation_data, BATCH_SIZE, augment=True),
+                                  nb_val_samples=len(validation_data) * 6,
                                   callbacks=[save_weights, early_stopping])
     # history = model.fit_generator(random_data_generator(train_data, BATCH_SIZE, augment=True),
     #                               samples_per_epoch=BATCH_SIZE * 400,
@@ -221,7 +225,7 @@ def train(sources, model_name, epochs=EPOCHS):
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    # data.append('test1')
+    data.append('test1')
     data.append('test1_r')
     data.append('test2')
     data.append('test2_r')
