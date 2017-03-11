@@ -6,7 +6,7 @@ import pandas as pd
 import tensorflow as tf
 from keras.callbacks import EarlyStopping, ModelCheckpoint
 from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout, ELU, MaxPooling2D, \
-    BatchNormalization
+    BatchNormalization, Activation
 from keras.models import Sequential
 from keras.models import load_model
 from sklearn.model_selection import train_test_split
@@ -89,21 +89,21 @@ def nvidia_model():
     model.add(Cropping2D(((50, 20), (0, 0))))
     model.add(Convolution2D(24, 5, 5, subsample=(2, 2)))
     model.add(BatchNormalization())
-    model.add(ELU())
+    model.add(Activation('relu'))
     model.add(Convolution2D(36, 5, 5, subsample=(2, 2)))
     model.add(BatchNormalization())
-    model.add(ELU())
+    model.add(Activation('relu'))
     model.add(Convolution2D(48, 5, 5, subsample=(2, 2)))
     model.add(BatchNormalization())
-    model.add(ELU())
+    model.add(Activation('relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1)))
     model.add(BatchNormalization())
-    model.add(ELU())
+    model.add(Activation('relu'))
     model.add(Convolution2D(64, 3, 3, subsample=(1, 1)))
     model.add(BatchNormalization())
-    model.add(ELU())
+    model.add(Activation('relu'))
     model.add(Flatten())
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.4))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
