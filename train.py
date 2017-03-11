@@ -17,7 +17,7 @@ MODEL_FILE = 'model.h5'
 EPOCHS = 10
 BATCH_SIZE = 64
 INPUT_SHAPE = (160, 320, 3)
-CORRECTION = 0.2
+CORRECTION = 0.25
 
 
 def image_path(path, full):
