@@ -190,7 +190,6 @@ def plot_history(history):
 
 def train(sources, model_name, epochs=EPOCHS):
     driving_logs = pd.concat([read_driving_log(source) for source in sources])
-    driving_logs = sample(driving_logs, 2000, 0.1)
 
     model = get_model(model_name)
     print(model.summary())
@@ -218,8 +217,8 @@ def train(sources, model_name, epochs=EPOCHS):
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    data.append('test1')
-    data.append('test1_r')
+    # data.append('test1')
+    # data.append('test1_r')
     data.append('test2')
     data.append('test2_r')
 
