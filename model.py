@@ -5,8 +5,7 @@ import numpy as np
 import pandas as pd
 import tensorflow as tf
 from keras.callbacks import EarlyStopping, ModelCheckpoint
-from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout, ELU, MaxPooling2D, \
-    Activation
+from keras.layers import Lambda, Convolution2D, Flatten, Dense, Cropping2D, Dropout, ELU, MaxPooling2D
 from keras.models import Sequential
 from keras.models import load_model
 from sklearn.model_selection import train_test_split
@@ -87,18 +86,13 @@ def nvidia_model():
     model = Sequential()
     model.add(Lambda(lambda x: x / 255.0 - 0.5, input_shape=INPUT_SHAPE))
     model.add(Cropping2D(((50, 20), (20, 20))))
-    model.add(Convolution2D(24, 5, 5, subsample=(2, 2)))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(36, 5, 5, subsample=(2, 2)))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(48, 5, 5, subsample=(2, 2)))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1)))
-    model.add(Activation('relu'))
-    model.add(Convolution2D(64, 3, 3, subsample=(1, 1)))
-    model.add(Activation('relu'))
+    model.add(Convolution2D(24, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(36, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(48, 5, 5, subsample=(2, 2), activation='relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
+    model.add(Convolution2D(64, 3, 3, subsample=(1, 1), activation='relu'))
     model.add(Flatten())
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.5))
     model.add(Dense(100, activation='relu'))
     model.add(Dense(50, activation='relu'))
     model.add(Dense(10, activation='relu'))
@@ -180,7 +174,7 @@ def data_generator(df, batch_size, augment=True, preprocess=False):
 
 def get_model(model_name):
     try:
-        model = load_model(model_name + '.h5')
+        model = load_model(MODEL_FILE)
         print('Load from trained model')
     except:
         model = globals()[model_name]()
@@ -209,7 +203,7 @@ def train(sources, model_name, epochs=EPOCHS):
 
     train_data, validation_data = train_test_split(driving_logs, test_size=0.2)
     early_stopping = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')
-    save_weights = ModelCheckpoint(model_name + '.h5', monitor='val_loss', save_best_only=False)
+    save_weights = ModelCheckpoint(MODEL_FILE, monitor='val_loss', save_best_only=False)
 
     history = model.fit_generator(data_generator(train_data, BATCH_SIZE, augment=True),
                                   samples_per_epoch=len(train_data) * 6,
@@ -217,22 +211,15 @@ def train(sources, model_name, epochs=EPOCHS):
                                   validation_data=data_generator(validation_data, BATCH_SIZE, augment=True),
                                   nb_val_samples=len(validation_data) * 6,
                                   callbacks=[save_weights, early_stopping])
-    # history = model.fit_generator(random_data_generator(train_data, BATCH_SIZE, augment=True),
-    #                               samples_per_epoch=BATCH_SIZE * 400,
-    #                               nb_epoch=epochs,
-    #                               validation_data=random_data_generator(validation_data, BATCH_SIZE, augment=False),
-    #                               nb_val_samples=BATCH_SIZE * 50,
-    #                               callbacks=[save_weights, early_stopping])
-
     plot_history(history)
 
 
 if __name__ == '__main__':
     data = []
     data.append('track1')
-    # data.append('test1')
-    data.append('test1_r')
-    # data.append('test2')
-    # data.append('test2_r')
+    #data.append('test1')
+    #data.append('test1_r')
+    data.append('test2')
+    data.append('test2_r')
 
     train(data, 'nvidia_model', 10)
